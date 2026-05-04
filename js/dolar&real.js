@@ -2,7 +2,7 @@
 
 let usdinput = document.querySelector("#usd")
 let brlinput = document.querySelector("#brl")
-let dolar = 5.25; // Valor do dólar em reais (exemplo)
+let dolar = 0; // Valor do dólar em reais (exemplo)
 
 // Eventos
 
@@ -43,7 +43,7 @@ brlinput.value = formatCurrency(result)//mostra no campo de brl
 
 }
 else if(type === "brl-to-usd"){
-let fixedvalue =  fixValue(brlinput.value)//ajustar o valor
+    let fixedvalue =  fixValue(brlinput.value)//ajustar o valor
 let result = fixedvalue / dolar; //converter o valor
 result = result.toFixed(2) //ajustar o valor para 2 casas decimais
 usdinput.value = formatCurrency(result)//mostra no campo de usd
@@ -51,4 +51,67 @@ usdinput.value = formatCurrency(result)//mostra no campo de usd
 }
 
 // proximo passo abrir uma requisição para pegar o valor do dolar atualizado, e 
-// colocar no lugar do valor fixo da variavel "dolar"
+
+//aquisição do dolar
+async function getdollar(){
+    try {
+        let response = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL");
+
+        if (!response.ok) {
+            throw new Error("Erro na API");
+        }
+
+        let data = await response.json();
+
+        return parseFloat(data.USDBRL?.bid || 0);
+
+    } catch (error) {
+        console.error("Erro ao buscar dóplar:", error);
+        return 0;
+    }
+}
+
+async function atualizarTabela() {
+    let dolar = await getdollar();
+
+    document.getElementById("dolar").textContent = dolar.toFixed(2);
+} 
+
+atualizarTabela();
+
+//aquisição do real
+async function getRealEmDolar(){
+    try {
+        let response = await fetch("https://economia.awesomeapi.com.br/json/last/BRL-USD");
+
+        if (!response.ok) {
+            throw new Error("Erro na API");
+        }
+
+        let data = await response.json();
+
+        return parseFloat(data.BRLUSD?.bid || 0);
+
+    } catch (error) {
+        console.error("Erro ao buscar real:", error);
+        return 0;
+    }
+}
+
+async function atualizarTabelareal() {
+    let realEmDolar = await getRealEmDolar();
+
+    document.getElementById("real").textContent = realEmDolar.toFixed(2);
+} 
+atualizarTabelareal();
+
+
+
+
+
+
+
+
+
+
+
