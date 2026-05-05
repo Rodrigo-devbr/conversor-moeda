@@ -1,3 +1,5 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 // Variaveis para armazenar os valores do dólar e real
 
 let usdinput = document.querySelector("#usd")
@@ -29,7 +31,7 @@ function formatCurrency(value){
 function fixValue(value){
     let fixedValue = value.replace(",", ".")//trocando a virgula por ponto
     let floatValue = parseFloat(fixedValue) //transformando a string em numero
-    if (floatValue == NaN){
+    if (isNaN(floatValue)){
         floatValue = 0
     }
     return floatValue
@@ -72,12 +74,21 @@ async function getdollar(){
 }
 
 async function atualizarTabela() {
-    let dolar = await getdollar();
+       dolar = await getdollar();
+
+    if (dolar === 0) {
+        document.getElementById("dolar").textContent = "Erro na API";
+        return;
+    }
 
     document.getElementById("dolar").textContent = dolar.toFixed(2);
 } 
-
+//Chama a função para atualizar a tabela com o valor do dólar
 atualizarTabela();
+setInterval(atualizarTabela, 60000); // Atualiza a tabela a cada 60 segundos (60000 milissegundos)      
+
+
+
 
 //aquisição do real
 async function getRealEmDolar(){
@@ -101,9 +112,66 @@ async function getRealEmDolar(){
 async function atualizarTabelareal() {
     let realEmDolar = await getRealEmDolar();
 
+    if (realEmDolar === 0) {
+        document.getElementById("real").textContent = "Erro na API";
+        return;
+    }
+
     document.getElementById("real").textContent = realEmDolar.toFixed(2);
 } 
 atualizarTabelareal();
+setInterval(atualizarTabelareal, 60000); // Atualiza a tabela a cada 60 segundos (60000 milissegundos)  
+
+   
+
+//criando grafico 
+
+const canvas = document.getElementById('grafico');
+
+if (!canvas) {
+    console.error("Canvas não encontrado");
+} else {
+    const ctx = canvas.getContext('2d');
+
+    const grafico = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'BRL → USD',
+                data: [],
+                borderWidth: 2,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+    async function atualizarGrafico() {
+        let valor = await getRealEmDolar();
+        if (valor === 0) return;
+
+        let agora = new Date().toLocaleTimeString();
+
+        grafico.data.labels.push(agora);
+        grafico.data.datasets[0].data.push(valor);
+
+        if (grafico.data.labels.length > 20) {
+            grafico.data.labels.shift();
+            grafico.data.datasets[0].data.shift();
+        }
+
+        grafico.update();
+    }
+
+    // roda na hora
+    atualizarGrafico();
+
+    // atualiza a cada 7s
+    setInterval(atualizarGrafico, 7000);
+}
 
 
 
@@ -111,7 +179,4 @@ atualizarTabelareal();
 
 
 
-
-
-
-
+});
